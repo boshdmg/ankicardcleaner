@@ -23,16 +23,30 @@ function stripWhitespace(text) {
     return stripped || text;  // Return the stripped text if non-empty, otherwise return the original text
 }
 
+// Helper function to remove HTML tags
+function stripHtmlTags(text) {
+    return text.replace(/<[^>]*>/g, '');
+}
+
 // Function to update cards in a deck
 async function updateCardsInDeck(deckName) {
     try {
-        // Get all note IDs in the deck
         const noteIds = await invokeAnkiConnect('findNotes', { query: `deck:"${deckName}"` });
-
         for (const noteId of noteIds) {
-            // Get note info
             const [noteInfo] = await invokeAnkiConnect('notesInfo', { notes: [noteId] });
             
+            // Check if Russian field exists and check spelling
+            if (noteInfo.fields.Russian) {
+                const russianField = noteInfo.fields.Russian.value;
+                //console.log(russianField)
+                // Check spelling
+                const spellingResult = await checkSpelling(russianField);
+                // if (spellingResult.matches && spellingResult.matches.length > 0) {
+                //     console.log(`Spelling issues found in note ${noteId}:`, spellingResult.matches);
+                //     // You could choose to automatically correct the spelling or flag the card for review
+                // }
+            }
+
             // Process each field in the note
             const updatedFields = {};
             let hasChanges = false;
@@ -90,3 +104,45 @@ async function updateCardsInDeck(deckName) {
 // Replace 'Your Deck Name' with the actual name of your deck
 const deckName = 'Russian';
 updateCardsInDeck(deckName);
+
+// Function to check spelling using Yandex Speller API with retry logic
+async function checkSpelling(text, retries = 3) {
+    const url = 'https://speller.yandex.net/services/spellservice.json/checkText';
+    
+    // Remove HTML tags from the text
+    const strippedText = stripHtmlTags(text);
+    
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'text': strippedText,
+                    'lang': 'ru',
+                    'options': 4  // Ignore capitalization
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(`Attempt ${i + 1} failed: ${error.message}`);
+            if (i === retries - 1) {
+                console.error('All retry attempts failed. Skipping spelling check for this text.');
+                return []; // Return an empty array to indicate no spelling issues found
+            }
+            // Wait for a short time before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+}
+
+//восемнàдцать -> восемна́дцать
+//Когдá -> когда́
