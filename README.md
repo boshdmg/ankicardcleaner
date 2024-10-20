@@ -24,3 +24,11 @@ Finds words that have lapsed more than 12 times and have an interval below 7 day
 node hardwordfinder.js
 ```
 
+## Create new cards
+
+Add a file called newWords.txt to the root of the project with one word per line.
+
+```
+node createNewCards.js
+```
+
