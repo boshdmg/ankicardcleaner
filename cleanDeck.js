@@ -11,12 +11,11 @@ async function invokeAnkiConnect(action, params = {}) {
     return responseJson.result;
 }
 
-// Function to strip leading and trailing whitespace, handle HTML escaped spaces, and remove <strong> and <b> tags only when they surround the entire content
+// Function to strip leading and trailing whitespace, handle HTML escaped spaces, and remove all HTML tags except <u>, <b>, <br>, and <strong>
 function stripWhitespace(text) {
     const stripped = text
         .replace(/^(&nbsp;|\s)+|(&nbsp;|\s)+$/g, '')  // Remove leading and trailing whitespace, including &nbsp;
-        .replace(/^&nbsp;|&nbsp;$/g, '')  // Remove any remaining leading or trailing &nbsp;
-        .replace(/^<(strong|b)>(.*)<\/\1>$/, '$2')  // Remove <strong> or <b> tags only when they surround the entire content
+        .replace(/<(?!\/?(?:u|b|br|strong|img|div)\b)[^>]+>/g, '')  // Remove all HTML tags except <u>, <b>, <br>, <img>, <div>, and <strong>
         .replace(/\s+/g, ' ')  // Replace multiple spaces with a single space
         .trim();  // Trim any remaining whitespace
 
@@ -38,9 +37,9 @@ async function updateCardsInDeck(deckName) {
             // Check if Russian field exists and check spelling
             if (noteInfo.fields.Russian) {
                 const russianField = noteInfo.fields.Russian.value;
-                //console.log(russianField)
+         
                 // Check spelling
-                const spellingResult = await checkSpelling(russianField);
+                // const spellingResult = await checkSpelling(russianField);
                 // if (spellingResult.matches && spellingResult.matches.length > 0) {
                 //     console.log(`Spelling issues found in note ${noteId}:`, spellingResult.matches);
                 //     // You could choose to automatically correct the spelling or flag the card for review
@@ -53,14 +52,15 @@ async function updateCardsInDeck(deckName) {
 
             for (const [field, { value }] of Object.entries(noteInfo.fields)) {
                 const strippedValue = stripWhitespace(value);
-                if (!strippedValue && field === 'Russian') {
+                if (!strippedValue && value) {
                     throw new Error(`Stripped value is empty or undefined for note ${noteId}, field ${field}`);
                 }
                 if (strippedValue !== value) {
                     updatedFields[field] = strippedValue;
                     hasChanges = true;
                     console.log(`Field: ${field}`);
-                    console.log(`Stripped: [${strippedValue}]`);
+                    console.log(`Original Value: [${value}]`);
+                    console.log(`Cleaned Value: [${strippedValue}]`);
                 }
             }
 
