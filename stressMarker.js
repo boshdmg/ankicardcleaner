@@ -1,19 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
-
-function cleanRussianText(text) {
-    return text
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/\([^)]*\)/g, '') // Remove parentheses and their contents
-        .replace(/\s*\/\s*/g, ' ') // Replace slashes with spaces
-        .trim(); // Remove leading and trailing whitespace
-}
-
-function isSingleRussianWord(text) {
-    const cleanedText = cleanRussianText(text);
-    return /^[\u0400-\u04FF]+$/.test(cleanedText);
-}
+const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils');
 
 function hasStressMarks(text) {
     return /[́̀]/.test(text);
