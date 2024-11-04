@@ -1,23 +1,6 @@
 const fs = require('fs').promises;
 const axios = require('axios');
-
-async function invokeAnkiConnect(action, params = {}) {
-    try {
-        const response = await axios.post('http://localhost:8765', {
-            action,
-            version: 6,
-            params
-        });
-        
-        if (response.data.error) {
-            throw new Error(response.data.error);
-        }
-        return response.data.result;
-    } catch (error) {
-        console.error(`AnkiConnect error: ${error.message}`);
-        throw error;
-    }
-}
+const { invokeAnkiConnect } = require('./utils/ankiConnect');
 
 async function getEnglishTranslation(word) {
     try {
@@ -42,13 +25,23 @@ async function createNewCards() {
         const wordList = words.split('\n').filter(Boolean).map(word => word.trim());
         
         for (const word of wordList) {
-            const translation = await getEnglishTranslation(word);
+            let translation;
+            
+            if (word.includes(',')) {
+                // If word contains comma, split and use second part as translation
+                const [russianWord, englishTranslation] = word.split(',').map(part => part.trim());
+                translation = englishTranslation;
+            } else {
+                // Otherwise get translation from API
+                translation = await getEnglishTranslation(word);
+            }
             
             if (translation) {
                 const noteFields = {
                     Russian: word,
                     English: translation,
                 };
+                console.log(noteFields);
                 
                 await invokeAnkiConnect('addNote', {
                     note: {

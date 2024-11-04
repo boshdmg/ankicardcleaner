@@ -1,15 +1,4 @@
-// Function to send requests to AnkiConnect
-async function invokeAnkiConnect(action, params = {}) {
-    const response = await fetch('http://localhost:8765', {
-        method: 'POST',
-        body: JSON.stringify({ action, version: 6, params }),
-    });
-    const responseJson = await response.json();
-    if (responseJson.error) {
-        throw new Error(responseJson.error);
-    }
-    return responseJson.result;
-}
+const { invokeAnkiConnect } = require('./utils/ankiConnect');
 
 // Function to strip leading and trailing whitespace, handle HTML escaped spaces, and remove all HTML tags except <u>, <b>, <br>, and <strong>
 function stripWhitespace(text) {

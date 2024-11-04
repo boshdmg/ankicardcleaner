@@ -1,19 +1,4 @@
-async function invokeAnkiConnect(action, params = {}) {
-    const response = await fetch('http://localhost:8765', {
-        method: 'POST',
-        body: JSON.stringify({ action, version: 6, params }),
-    });
-    
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const responseJson = await response.json();
-    if (responseJson.error) {
-        throw new Error(responseJson.error);
-    }
-    return responseJson.result;
-}
+const { invokeAnkiConnect } = require('./utils/ankiConnect');
 
 async function findLapsedRussianWords(deckName) {
     try {

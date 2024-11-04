@@ -1,24 +1,7 @@
 const axios = require('axios');
+const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const fs = require('fs').promises;
 const path = require('path');
-
-// Function to send requests to AnkiConnect
-async function invokeAnkiConnect(action, params = {}) {
-    const response = await fetch('http://localhost:8765', {
-        method: 'POST',
-        body: JSON.stringify({ action, version: 6, params }),
-    });
-    
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const responseJson = await response.json();
-    if (responseJson.error) {
-        throw new Error(responseJson.error);
-    }
-    return responseJson.result;
-}
 
 // Function to clean up the Russian text
 function cleanRussianText(text) {
@@ -27,8 +10,14 @@ function cleanRussianText(text) {
         .replace(/\([^)]*\)/g, '') // Remove parentheses and their contents
         .replace(/[́̀]/g, '') // Remove stress marks
         .replace(/\s*\/\s*/g, ' ') // Replace slashes with spaces
-        .trim() // Remove leading and trailing whitespace
-        .split(/\s+/)[0]; // Take only the first word
+        .trim(); // Remove leading and trailing whitespace
+}
+
+// Function to check if the text is a single Russian word
+function isSingleRussianWord(text) {
+    const cleanedText = cleanRussianText(text);
+    // Check if the cleaned text contains only Cyrillic characters and no spaces
+    return /^[\u0400-\u04FF]+$/.test(cleanedText);
 }
 
 // Function to download audio from Wiktionary
@@ -73,12 +62,14 @@ async function findHighLapseLowIntervalCards(deckName, outputDir) {
         // Filter and process cards
         for (const card of cardsInfo) {
             // Only process cards with lapse count > 7 and interval < 7 days
-            if (card.lapses > 7 && card.interval < 7) {
+            if (card.lapses > 3 && card.interval < 14) {
                 // Get note info for the card
                 const [noteInfo] = await invokeAnkiConnect('notesInfo', { notes: [card.note] });
                 
-                // Check if Russian field exists and Russian sound is empty
-                if (noteInfo.fields.Russian && (!noteInfo.fields['Russian Sound'] || !noteInfo.fields['Russian Sound'].value)) {
+                // Check if Russian field exists, Russian sound is empty, and it's a single Russian word
+                if (noteInfo.fields.Russian && 
+                    (!noteInfo.fields['Russian Sound'] || !noteInfo.fields['Russian Sound'].value) &&
+                    isSingleRussianWord(noteInfo.fields.Russian.value)) {
                     const russianField = noteInfo.fields.Russian.value;
                     
                     // Download audio
