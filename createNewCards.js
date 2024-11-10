@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const axios = require('axios');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const { getEnglishTranslation } = require('./utils/translationUtils');
+const { getStress } = require('./utils/wiktionaryUtils');
 
 async function createNewCards() {
     try {
@@ -10,19 +11,29 @@ async function createNewCards() {
         
         for (const word of wordList) {
             let translation;
+            let russianWord;
             
             if (word.includes(',')) {
                 // If word contains comma, split and use second part as translation
-                const [russianWord, englishTranslation] = word.split(',').map(part => part.trim());
+                const [rusWord, englishTranslation] = word.split(',').map(part => part.trim());
+                russianWord = rusWord;
                 translation = englishTranslation;
             } else {
-                // Otherwise get translation from API
+                russianWord = word;
                 translation = await getEnglishTranslation(word);
+            }
+
+            // Add stress marks if not already present
+            if (!russianWord.includes('́')) {
+                const stressedWord = await getStress(russianWord);
+                if (stressedWord) {
+                    russianWord = stressedWord;
+                }
             }
             
             if (translation) {
                 const noteFields = {
-                    Russian: word,
+                    Russian: russianWord,
                     English: translation,
                 };
                 console.log(noteFields);
