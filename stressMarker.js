@@ -2,15 +2,26 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils');
-const { getStressedWordFromWiktionary } = require('./utils/wiktionaryUtils');
+const { getStress } = require('./utils/wiktionaryUtils');
 
 function hasStressMarks(text) {
-    return /[́̀]/.test(text);
+    const russianVowels = /[аеёиоуыэюяАЕЁИОУЫЭЮЯ]/g;
+    const stressMarks = /[́̀]/;
+    const hasYo = /[ёЁ]/;
+    
+    // Return true if:
+    // 1. There are stress marks, or
+    // 2. There is exactly one Russian vowel, or
+    // 3. The text contains ё/Ё
+    const vowelMatches = text.match(russianVowels) || [];
+    return stressMarks.test(text) || vowelMatches.length === 1 || hasYo.test(text);
 }
 
 async function updateCardsWithStressMarks(deckName) {
     try {
         const noteIds = await invokeAnkiConnect('findNotes', { query: `deck:"${deckName}"` });
+        
+        console.log(`Found ${noteIds.length} notes in deck "${deckName}"`);
         
         for (const noteId of noteIds) {
             const [noteInfo] = await invokeAnkiConnect('notesInfo', { notes: [noteId] });
@@ -21,7 +32,9 @@ async function updateCardsWithStressMarks(deckName) {
                 
                 if (isSingleRussianWord(cleanedWord) && !hasStressMarks(russianField)) {
                     try {
-                        const stressedWord = await getStressedWordFromWiktionary(cleanedWord);
+                        const stressedWord = await getStress(cleanedWord);
+                        
+                        console.log(`Stressed word for "${cleanedWord}": "${stressedWord}"`);
                         
                         if (stressedWord && stressedWord !== cleanedWord) {
                             await invokeAnkiConnect('updateNoteFields', {

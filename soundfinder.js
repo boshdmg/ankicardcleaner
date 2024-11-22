@@ -7,28 +7,37 @@ const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils'
 // Function to download audio from Wiktionary
 async function downloadWiktionaryAudio(word, outputDir) {
     const cleanWord = cleanRussianText(word);
-    const url = `https://ru.wiktionary.org/wiki/${encodeURIComponent(cleanWord)}`;
-    try {
-        const response = await axios.get(url);
-        const audioRegex = /<source src="(\/\/upload\.wikimedia\.org\/wikipedia\/commons\/[^"]+\.ogg)"/;
-        const match = response.data.match(audioRegex);
-        
-        if (match && match[1]) {
-            const audioUrl = `https:${match[1]}`;
-            const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-            const fileName = `${cleanWord}.ogg`;
-            const filePath = path.join(outputDir, fileName);
-            await fs.writeFile(filePath, audioResponse.data);
-            console.log(`Audio downloaded for "${cleanWord}": ${filePath}`);
-            return filePath;
-        } else {
-            console.log(`No audio found for "${cleanWord}"`);
-            return null;
+    // Try different word forms (original and lowercase)
+    const wordForms = [cleanWord, cleanWord.toLowerCase()];
+    
+    for (const wordForm of wordForms) {
+        const url = `https://ru.wiktionary.org/wiki/${encodeURIComponent(wordForm)}`;
+        try {
+            const response = await axios.get(url);
+            const audioRegex = /<source src="(\/\/upload\.wikimedia\.org\/wikipedia\/commons\/[^"]+\.ogg)"/;
+            const match = response.data.match(audioRegex);
+            
+            if (match && match[1]) {
+                const audioUrl = `https:${match[1]}`;
+                const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+                const fileName = `${cleanWord}.ogg`;
+                const filePath = path.join(outputDir, fileName);
+                await fs.writeFile(filePath, audioResponse.data);
+                console.log(`Audio downloaded for "${cleanWord}"`);
+                return filePath;
+            }
+        } catch (error) {
+            // Only log detailed error if it's not a 404
+            if (error.response?.status !== 404) {
+                console.error(`Error accessing Wiktionary for "${wordForm}":`, error.message);
+            }
+            // Continue to next word form if this one fails
+            continue;
         }
-    } catch (error) {
-        console.error(`Error downloading audio for "${cleanWord}":`, error.message);
-        return null;
     }
+    
+    console.log(`No audio found for any form of "${cleanWord}"`);
+    return null;
 }
 
 // Function to find and process cards with high lapses and low interval
