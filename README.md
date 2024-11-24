@@ -1,4 +1,4 @@
-An app for cleaning up an AnkiDeck I use for learning Russian
+An app for cleaning up an AnkiDeck I use for learning Russian. Enables adding audio to cards from wikitionary and checking spelling.
 
 Requires AnkiConnect to be installed and running. Bringing Anki to the foreground makes it run faster.
 
