@@ -13,7 +13,7 @@ node soundfinder.js
 Fixes formatting, removes leech tag from known cards, and checks spelling (currently disabled)
 
 ```
-node cleanDeck.js
+node russianDeckManager.js
 ```
 
 ## Find hard words

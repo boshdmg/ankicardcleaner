@@ -7,35 +7,60 @@ const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils'
 // Function to download audio from Wiktionary
 async function downloadWiktionaryAudio(word, outputDir) {
     const cleanWord = cleanRussianText(word);
-    // Try different word forms (original and lowercase)
+    // Add debug for this specific word
+    const isTargetWord = cleanWord === 'перемещать';
+    if (isTargetWord) console.log(`Attempting to download audio for target word: ${cleanWord}`);
+    
     const wordForms = [cleanWord, cleanWord.toLowerCase()];
     
     for (const wordForm of wordForms) {
         const url = `https://ru.wiktionary.org/wiki/${encodeURIComponent(wordForm)}`;
+        if (isTargetWord) console.log(`Trying URL: ${url}`);
+        
         try {
             const response = await axios.get(url);
+            if (isTargetWord) console.log('Successfully got Wiktionary page');
+            
             const audioRegex = /<source src="(\/\/upload\.wikimedia\.org\/wikipedia\/commons\/[^"]+\.ogg)"/;
             const match = response.data.match(audioRegex);
             
+            if (isTargetWord) {
+                console.log('HTML snippet around potential audio:');
+                const htmlSnippet = response.data.includes('source src=') 
+                    ? response.data.substring(response.data.indexOf('source src=') - 50, response.data.indexOf('source src=') + 150)
+                    : 'No "source src=" found in page';
+                console.log(htmlSnippet);
+            }
+            
             if (match && match[1]) {
                 const audioUrl = `https:${match[1]}`;
+                if (isTargetWord) console.log(`Found audio URL: ${audioUrl}`);
                 const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
                 const fileName = `${cleanWord}.ogg`;
                 const filePath = path.join(outputDir, fileName);
                 await fs.writeFile(filePath, audioResponse.data);
                 console.log(`Audio downloaded for "${cleanWord}"`);
                 return filePath;
+            } else if (isTargetWord) {
+                console.log('No audio match found in the page');
             }
         } catch (error) {
+            if (isTargetWord) {
+                console.log(`Error details for ${wordForm}:`, {
+                    status: error.response?.status,
+                    statusText: error.response?.statusText,
+                    message: error.message
+                });
+            }
             // Only log detailed error if it's not a 404
             if (error.response?.status !== 404) {
                 console.error(`Error accessing Wiktionary for "${wordForm}":`, error.message);
             }
-            // Continue to next word form if this one fails
             continue;
         }
     }
     
+    if (isTargetWord) console.log('No audio found after trying all word forms');
     console.log(`No audio found for any form of "${cleanWord}"`);
     return null;
 }
