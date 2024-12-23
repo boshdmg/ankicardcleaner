@@ -1,5 +1,9 @@
 // Function to clean up the Russian text
 function cleanRussianText(text) {
+    if (typeof text !== 'string') {
+        throw new Error('Input must be a string');
+    }
+
     return text
         .replace(/<[^>]*>/g, '') // Remove HTML tags
         .replace(/\([^)]*\)/g, '') // Remove parentheses and their contents

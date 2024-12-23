@@ -32,3 +32,6 @@ Add a file called newWords.txt to the root of the project with one word per line
 node createNewCards.js
 ```
 
+##Prompt
+
+I am a Russian language learner. The following is a list of words that I have struggled with. Please help me learn them. Create a set of sentences for me to practice with these words. You make use the top 300 most common words in the Russian language, to help make the sentences more natural. When using one of the works below make the bold and add the stress mark to the word.  For verbs it ok to conjugate them but don't use past tense. Use the words with their most common meaning. Just give one sentence per word. Dont use bullet points.

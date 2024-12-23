@@ -41,29 +41,34 @@ async function findSuspendedRussianWords(deckName) {
         
         const cardsInfo = await invokeAnkiConnect('cardsInfo', { cards: cardIds });
         
-        const suspendedWords = new Set(); // Use Set for unique words
+        // Create array to store word-lapse pairs
+        const suspendedWordsWithLapses = [];
+        
         for (const card of cardsInfo) {
             const [noteInfo] = await invokeAnkiConnect('notesInfo', { notes: [card.note] });
             if (noteInfo.fields.Russian) {
-                // Remove HTML tags and trim whitespace
                 const cleanWord = noteInfo.fields.Russian.value
                     .replace(/<[^>]*>/g, '')
                     .trim();
                 
-                // Only add if it's a single word (no spaces)
-                if (!cleanWord.includes(' ')) {
-                    suspendedWords.add(cleanWord);
-                }
+                suspendedWordsWithLapses.push({
+                    word: cleanWord,
+                    lapses: card.lapses
+                });
             }
         }
         
-        // Print the suspended single words
-        console.log('Suspended Russian single words:');
-        suspendedWords.forEach(word => {
-            console.log(`${word}`);
+        // Sort by lapses (descending) and get top 10
+        const top10Words = suspendedWordsWithLapses
+            .sort((a, b) => b.lapses - a.lapses)
+            .slice(0, 30);
+        
+        // Print the top 10 suspended words with their lapse counts
+        console.log('Top 10 suspended Russian words by lapses:');
+        top10Words.forEach((item, index) => {
+            console.log(`${item.word}`);
         });
         
-        console.log(`Total unique suspended single words: ${suspendedWords.size}`);
     } catch (error) {
         console.error('Error finding suspended Russian words:', error);
     }

@@ -1,0 +1,11 @@
+This is an app for managing an Anki deck of Russian words.
+
+I use anki to improve my Russian vocabulary, pronunciation, and grammar. 
+
+I try to create cards with the following characteristics:
+- Russian words with the stress marks
+- include russian sound files where possible
+- include pictures where possible
+
+It is built with JavaScript and uses the AnkiConnect API to interact with Anki.
+

@@ -4,8 +4,11 @@ const fs = require('fs').promises;
 const path = require('path');
 const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils');
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Function to download audio from Wiktionary
 async function downloadWiktionaryAudio(word, outputDir) {
+    await sleep(100);
     const cleanWord = cleanRussianText(word);
     // Add debug for this specific word
     const isTargetWord = cleanWord === 'перемещать';
