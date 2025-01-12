@@ -28,7 +28,6 @@ async function downloadWiktionaryAudio(word, outputDir) {
                 const fileName = `${cleanWord}.ogg`;
                 const filePath = path.join(outputDir, fileName);
                 await fs.writeFile(filePath, audioResponse.data);
-                console.log(`Audio downloaded for "${cleanWord}"`);
                 return filePath;
             }
         } catch (error) {
@@ -89,8 +88,6 @@ async function findHighLapseLowIntervalCards(deckName, outputDir) {
                                 }
                             });
                             
-                            console.log(`Updated 'Russian sound' field for note ${card.note} with ${audioFilename}`);
-                            
                             // Add the file to Anki's media collection
                             const fileContent = await fs.readFile(audioPath);
                             await invokeAnkiConnect('storeMediaFile', {
@@ -98,12 +95,10 @@ async function findHighLapseLowIntervalCards(deckName, outputDir) {
                                 data: fileContent.toString('base64')
                             });
                             
-                            console.log(`Added ${audioFilename} to Anki's media collection`);
+                            console.log(`Audio added to note ${card.note} with ${audioFilename}`);
                         } catch (error) {
                             console.error(`Error processing audio file ${audioPath}:`, error.message);
                         }
-                    } else {
-                        console.log(`No audio found for note ${card.note}`);
                     }
                 }
             }

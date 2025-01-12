@@ -35,6 +35,12 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
             let updatedField = russianField;
             let shouldUpdate = false;
             
+            // Add or update 'Russian without stress' field
+            if (!noteInfo.fields['Russian without stress'] || 
+                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField)) {
+                shouldUpdate = true;
+            }
+            
             // Clean cards if option enabled
             if (options.cleanCards) {
                 const cleanedText = stripWhitespace(russianField);
@@ -83,7 +89,8 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                         note: {
                             id: noteId,
                             fields: {
-                                Russian: updatedField
+                                Russian: updatedField,
+                                'Russian without stress': cleanRussianText(updatedField)
                             }
                         }
                     });

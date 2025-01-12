@@ -3,6 +3,7 @@ const axios = require('axios');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const { getEnglishTranslation } = require('./utils/translationUtils');
 const { getStress } = require('./utils/wiktionaryUtils');
+const { cleanRussianText } = require('./utils/russianUtils');
 
 async function createNewCards() {
     try {
@@ -34,6 +35,7 @@ async function createNewCards() {
             if (translation) {
                 const noteFields = {
                     Russian: russianWord,
+                    'Russian without stress': cleanRussianText(russianWord),
                     English: translation,
                 };
                 console.log(noteFields);
