@@ -1,47 +1,8 @@
-const axios = require('axios');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const fs = require('fs').promises;
 const path = require('path');
-const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils');
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Function to download audio from Wiktionary
-async function downloadWiktionaryAudio(word, outputDir) {
-    await sleep(100);
-    const cleanWord = cleanRussianText(word);
-    
-    const wordForms = [cleanWord, cleanWord.toLowerCase()];
-    
-    for (const wordForm of wordForms) {
-        const url = `https://ru.wiktionary.org/wiki/${encodeURIComponent(wordForm)}`;
-        
-        try {
-            const response = await axios.get(url);
-            
-            const audioRegex = /<source src="(\/\/upload\.wikimedia\.org\/wikipedia\/commons\/[^"]+\.ogg)"/;
-            const match = response.data.match(audioRegex);
-            
-            if (match && match[1]) {
-                const audioUrl = `https:${match[1]}`;
-                const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-                const fileName = `${cleanWord}.ogg`;
-                const filePath = path.join(outputDir, fileName);
-                await fs.writeFile(filePath, audioResponse.data);
-                return filePath;
-            }
-        } catch (error) {
-            // Only log detailed error if it's not a 404
-            if (error.response?.status !== 404) {
-                console.error(`Error accessing Wiktionary for "${wordForm}":`, error.message);
-            }
-            continue;
-        }
-    }
-    
-    console.log(`No audio found for any form of "${cleanWord}"`);
-    return null;
-}
+const { isSingleRussianWord } = require('./utils/russianUtils');
+const { downloadWiktionaryAudio } = require('./utils/wiktionaryUtils');
 
 // Function to find and process cards with high lapses and low interval
 async function findHighLapseLowIntervalCards(deckName, outputDir) {
@@ -63,9 +24,9 @@ async function findHighLapseLowIntervalCards(deckName, outputDir) {
                 const [noteInfo] = await invokeAnkiConnect('notesInfo', { notes: [card.note] });
                 
                 // Check if Russian field exists, Russian sound is empty, and it's a single Russian word
-                if (noteInfo.fields.Russian && 
-                    (!noteInfo.fields['Russian Sound'] || !noteInfo.fields['Russian Sound'].value) &&
-                    isSingleRussianWord(noteInfo.fields.Russian.value)) {
+                if (noteInfo.fields.Russian && noteInfo.fields['Russian Sound'] && !noteInfo.fields['Russian Sound'].value && isSingleRussianWord(noteInfo.fields.Russian.value)) 
+                {
+                    
                     const russianField = noteInfo.fields.Russian.value;
                     
                     // Download audio
@@ -94,11 +55,14 @@ async function findHighLapseLowIntervalCards(deckName, outputDir) {
                                 filename: audioFilename,
                                 data: fileContent.toString('base64')
                             });
-                            
-                            console.log(`Audio added to note ${card.note} with ${audioFilename}`);
+
+                            console.log(`Updated sound for  ${russianField} with ${audioFilename}`);
+                           
                         } catch (error) {
                             console.error(`Error processing audio file ${audioPath}:`, error.message);
                         }
+                    } else {
+                        console.log(`No audio found for ${russianField}`);
                     }
                 }
             }

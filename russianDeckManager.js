@@ -13,6 +13,8 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
         for (const noteId of noteIds) {
             const [noteInfo] = await invokeAnkiConnect('notesInfo', { notes: [noteId] });
 
+           
+           //REMOVE LEECH TAG
             if (noteInfo.tags.includes('leech')) {
                 const cardIds = await invokeAnkiConnect('findCards', { query: `nid:${noteId}` });
                 const cardInfo = await invokeAnkiConnect('cardsInfo', { cards: cardIds });
@@ -41,12 +43,19 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                 shouldUpdate = true;
             }
             
-            // Clean cards if option enabled
+            // Add or update 'Russian without stress' field
+            if (!noteInfo.fields['Russian without stress'] || 
+                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField)) {
+                shouldUpdate = true;
+            }
+            
+            // REMOVE SPACES AND HTML TAGS
             if (options.cleanCards) {
                 const cleanedText = stripWhitespace(russianField);
                 if (cleanedText !== russianField) {
                     updatedField = cleanedText;
                     shouldUpdate = true;
+                    console.log(`Removed spaces and HTML tags from ${russianField}`);
                 }
             }
 
@@ -63,7 +72,7 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                 }
             }
             
-            // Add stress marks if option enabled
+            // ADD STRESS MARKS
             if (options.addStressMarks) {
                 const cleanedWord = cleanRussianText(updatedField);
                 
@@ -81,8 +90,57 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                     }
                 }
             }
+
             
-            // Update the note if changes were made
+            // REMOVE AUTO_ADDED TAG IF CARD IS OLD ENOUGH
+            if (options.removeOldAutoAddedTags) {
+                const cardInfo = await invokeAnkiConnect('cardsInfo', {
+                    cards: [noteInfo.cards[0]]  // Get info for first card of note
+                });
+                
+                if (cardInfo && cardInfo[0]) {
+                    const firstReviewTime = cardInfo[0].first;  // Unix timestamp of first review
+                    const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                    
+                    if (firstReviewTime < oneMonthAgo && noteInfo.tags.includes('auto_added')) {
+                        try {
+                            await invokeAnkiConnect('removeTags', {
+                                notes: [noteId],
+                                tags: "auto_added"
+                            });
+                            console.log(`Removed auto_added tag from  ${russianField}`);
+                        } catch (error) {
+                            console.error(`Error removing auto_added tag from note ${noteId}:`, error.message);
+                        }
+                    }
+                }
+            }
+
+            // UNSUSPEND OLD SUSPENDED CARDS
+            if (options.unsuspendOldCards) {
+                const cardInfo = await invokeAnkiConnect('cardsInfo', {
+                    cards: [noteInfo.cards[0]]  // Get info for first card of note
+                });
+                
+                if (cardInfo && cardInfo[0] && cardInfo[0].queue === -1) { // -1 indicates suspended
+                    const suspendedTime = cardInfo[0].mod; // Last modified timestamp
+                    const threeMonthsAgo = Date.now() - (180 * 24 * 60 * 60 * 1000);
+                    
+                    if (suspendedTime < threeMonthsAgo) {
+                        try {
+                            await invokeAnkiConnect('suspend', {
+                                cards: [noteInfo.cards[0]],
+                                suspend: false
+                            });
+                            console.log(`Unsuspended card for ${russianField} after 6 months`);
+                        } catch (error) {
+                            console.error(`Error unsuspending card ${noteInfo.cards[0]}:`, error.message);
+                        }
+                    }
+                }
+            }
+
+            // UPDATE NOTE
             if (shouldUpdate) {
                 try {
                     await invokeAnkiConnect('updateNoteFields', {
@@ -94,7 +152,7 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                             }
                         }
                     });
-                    console.log(`Updated note ${noteId}`);
+                    console.log(`Updated ${updatedField}`);
                 } catch (error) {
                     console.error(`Error updating note ${noteId}:`, error.message);
                 }
@@ -107,9 +165,12 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
     }
 }
 
-// Example usage:
+//toto: not sure this option concept is needed
 const deckName = 'Russian';
 processRussianDeck(deckName, {
-    addStressMarks: true,
-    cleanCards: true
+     addStressMarks: true,
+     cleanCards: true,
+     removeOldAutoAddedTags: true,
+    // checkSpelling: false,
+    unsuspendOldCards: true
 });
