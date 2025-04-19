@@ -36,19 +36,8 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
             const russianField = noteInfo.fields.Russian.value;
             let updatedField = russianField;
             let shouldUpdate = false;
-            
-            // Add or update 'Russian without stress' field
-            if (!noteInfo.fields['Russian without stress'] || 
-                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField)) {
-                shouldUpdate = true;
-            }
-            
-            // Add or update 'Russian without stress' field
-            if (!noteInfo.fields['Russian without stress'] || 
-                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField)) {
-                shouldUpdate = true;
-            }
-            
+
+
             // REMOVE SPACES AND HTML TAGS
             if (options.cleanCards) {
                 const cleanedText = stripWhitespace(russianField);
@@ -57,6 +46,14 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                     shouldUpdate = true;
                     console.log(`Removed spaces and HTML tags from ${russianField}`);
                 }
+            }
+            
+            // Add or update 'Russian without stress' field
+            if (!noteInfo.fields['Russian without stress'] || 
+                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField)) {
+                noteInfo.fields['Russian without stress'] = cleanRussianText(russianField);
+                shouldUpdate = true;
+                console.log(`Updated ${russianField} to populated stressless field`);
             }
 
             if (options.checkSpelling) {
@@ -123,10 +120,10 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                 });
                 
                 if (cardInfo && cardInfo[0] && cardInfo[0].queue === -1) { // -1 indicates suspended
-                    const suspendedTime = cardInfo[0].mod; // Last modified timestamp
-                    const threeMonthsAgo = Date.now() - (180 * 24 * 60 * 60 * 1000);
+                    const lastReviewTime = cardInfo[0].rmod; // Last review timestamp
+                    const sixMonthsAgo = Date.now() - (180 * 24 * 60 * 60 * 1000);
                     
-                    if (suspendedTime < threeMonthsAgo) {
+                    if (lastReviewTime < sixMonthsAgo) {
                         try {
                             await invokeAnkiConnect('suspend', {
                                 cards: [noteInfo.cards[0]],
