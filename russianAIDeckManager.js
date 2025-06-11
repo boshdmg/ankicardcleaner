@@ -1,7 +1,7 @@
 require('dotenv').config();
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { RUSSIAN_ANALYSIS_PROMPT, RUSSIAN_ANALYSIS_PROMPT_ONE_SIDED } = require('./openaiPrompts');
+const { RUSSIAN_ANALYSIS_PROMPT, RUSSIAN_ANALYSIS_PROMPT_ONE_SIDED } = require('./prompts');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const { isSingleRussianWord, cleanRussianText } = require('./utils/russianUtils');
 
