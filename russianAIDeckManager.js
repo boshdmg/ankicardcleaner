@@ -34,7 +34,7 @@ async function enhanceWithDeepSeek(russian, english, prompt) {
         const content = response.data.choices[0].message.content;
       
         const jsonStr = content.replace(/```json\n|\n```/g, '');
-        console.log("jsonStr", jsonStr);
+        console.log("DeepSeek response", jsonStr);
         return JSON.parse(jsonStr);
     } catch (error) {
         console.error('DeepSeek enhancement failed:', error);
@@ -44,7 +44,7 @@ async function enhanceWithDeepSeek(russian, english, prompt) {
 }
 //https://en.wiktionary.org/wiki/File:Ru-%D1%88%D0%B8%D1%80%D0%BE%D0%BA%D0%B8%D0%B9.ogg
 
-async function processRussianDeck(deckName, options = { }) {
+async function processRussianDeck(deckName) {
     try {
         const noteIds = await invokeAnkiConnect('findNotes', { 
             query: `deck:"${deckName}" -AIProcessed:1` 
@@ -91,7 +91,6 @@ async function processRussianDeck(deckName, options = { }) {
             {
                 if (!noteInfo.fields.Russian) throw new Error("Russian field is missing");
 
-                console.log("Note Type:", noteInfo.modelName);
                 const russianField = noteInfo.fields.Russian?.value;
                 const englishField = noteInfo.fields.English?.value;
                 let withoutStressMarks = noteInfo.fields['Russian without stress']?.value;
@@ -104,19 +103,11 @@ async function processRussianDeck(deckName, options = { }) {
                 }
                 
                 if (!beenProcessd) {
-                    console.log("processing", russianField);
+                    console.log("processing", russianField, englishField);
                     try {
                         const enhancement = await enhanceWithDeepSeek(russianField,englishField, RUSSIAN_ANALYSIS_PROMPT);
                         if (enhancement) {
-                            console.log("enhancement", enhancement.russian);
-                            console.log("enhancement", enhancement.english);
-                            console.log("enhancement pronunciation", enhancement.pronunciation);
-                            console.log("enhancement related words", enhancement.related_words);
-                            console.log("enhancement sentence", enhancement.sentence);
-                            console.log("enhancement synonym", enhancement.synonym);
-
-                    
-
+                          
                             if(!enhancement.russian)
                             {
                                 throw new Error("No Russian text found");
@@ -155,11 +146,4 @@ async function processRussianDeck(deckName, options = { }) {
 
 //toto: not sure this option concept is needed
 const deckName = 'Russian';
-processRussianDeck(deckName, {
-     addStressMarks: false,
-     cleanCards: true,
-     removeOldAutoAddedTags: false,
-    // checkSpelling: false,
-    unsuspendOldCards: false,
-    aiEnhance: true  // Enable OpenAI enhancement for testing
-});
+processRussianDeck(deckName);

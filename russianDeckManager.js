@@ -1,5 +1,3 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const { cleanRussianText, isSingleRussianWord } = require('./utils/russianUtils');
 const { getStress } = require('./utils/wiktionaryUtils');

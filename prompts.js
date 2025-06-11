@@ -11,7 +11,6 @@ For the given Russian word or sentence, analyze and provide information in the f
     "russian": "The updated version of the word or sentence.",
     "pronunciation": "Only populate this if the pronunciation is irregular. Only use Cyrillic no phonetics",
     "english": "The updated english translation of the word or sentence. ",
-    "found_image": "If you find html for an image in one of the provide russian or english please put the html here. If there is no image, leave it blank. Dont provide advise. Make sure its JSON format.",
     "synonym" : "If there is a considerably more commonly used synonym of identical meaning state it here",
     "sentence": "An example russian sentence using  up to B1 level words. Dont provide the english translation."
     "related_words":"2 or 3 related words, with translations, as sentance not JSON",
@@ -42,9 +41,6 @@ For the given card, analyze and provide information in the following JSON struct
     "skip": "If think the is an ususal problem with the card, please put true here. If you think the card is fine, please put false.",
     "front": "The updated version of the word or sentence if needed. Which is the orgignal word with any spelling mistakes fixed, and be in sentence capitalisation. If the word is russian add the stress marks.",
     "back":  "The updated version of the word or sentence if needed. Which is the orgignal word with any spelling mistakes fixed, and be in sentence capitalisation. If the word is russian add the stress marks.",
-    "found_sound": "If you find sound tag in either the front or back, please put the html here. If there is no sound, leave it blank. Dont provide advise. Make sure its JSON format.",
-    "front_image": "If you find html for an image in the front, please put the html here. If there is no image, leave it blank. Dont provide advise. Make sure its JSON format.",
-    "back_image": "If you find html for an image in the back, please put the html here. If there is no image, leave it blank. Dont provide advise. Make sure its JSON format.",
 }
 If you are given something that is not valid, return an empty JSON.
 

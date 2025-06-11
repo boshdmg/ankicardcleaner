@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 async function invokeAnkiConnect(action, params = {}) {
     try {
         const response = await fetch('http://localhost:8765', {
