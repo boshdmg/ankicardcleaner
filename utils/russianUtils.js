@@ -5,7 +5,7 @@ function cleanRussianText(text) {
     }
 
     return text
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/<[^>]*>/g, '') // Remove HTML tag
         .replace(/\([^)]*\)/g, '') // Remove parentheses and their contents
         .replace(/[́̀]/g, '') // Remove stress marks
         .replace(/\s*\/\s*/g, ' ') // Replace slashes with spaces

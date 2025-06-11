@@ -50,23 +50,10 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
             
             // Add or update 'Russian without stress' field
             if (!noteInfo.fields['Russian without stress'] || 
-                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField)) {
-                noteInfo.fields['Russian without stress'] = cleanRussianText(russianField);
+                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField).toLocaleUpperCase()) {
+                noteInfo.fields['Russian without stress'] = cleanRussianText(russianField).toLocaleUpperCase();
                 shouldUpdate = true;
-                console.log(`Updated ${russianField} to populated stressless field`);
-            }
-
-            if (options.checkSpelling) {
-                // Check if Russian field exists and check spelling
-                if (noteInfo.fields.Russian) {
-                const russianField = noteInfo.fields.Russian.value;
-             
-                    // Check spelling
-                    // const spellingResult = await checkSpelling(russianField);
-                    // if (spellingResult.matches && spellingResult.matches.length > 0) {
-                    //     console.log(`Spelling issues found in note ${noteId}:`, spellingResult.matches);
-                    //     // You could choose to automatically correct the spelling or flag the card for review
-                }
+                console.log(`Updated ${russianField} to populated stressless field => ${cleanRussianText(russianField)}`);
             }
             
             // ADD STRESS MARKS
@@ -168,6 +155,5 @@ processRussianDeck(deckName, {
      addStressMarks: true,
      cleanCards: true,
      removeOldAutoAddedTags: true,
-    // checkSpelling: false,
     unsuspendOldCards: true
 });
