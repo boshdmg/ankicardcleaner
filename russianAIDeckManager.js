@@ -1,47 +1,9 @@
 require('dotenv').config();
 const axios = require('axios');
-const cheerio = require('cheerio');
 const { RUSSIAN_ANALYSIS_PROMPT, RUSSIAN_ANALYSIS_PROMPT_ONE_SIDED } = require('./prompts');
 const { invokeAnkiConnect } = require('./utils/ankiConnect');
 const { isSingleRussianWord, cleanRussianText } = require('./utils/russianUtils');
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
-
-async function enhanceWithDeepSeek(russian, english, prompt) {
-    try {
-        const response = await axios.post(DEEPSEEK_API_URL, {
-            model: "deepseek-chat",
-            response_format: { type: "json_object" },
-            messages: [
-                {
-                    role: "system",
-                    content: prompt
-                },
-                {
-                    role: "user",
-                    content: `Analyze this card. Front: ${russian}, Back: ${english}`
-                }
-            ],
-            temperature: 1.3
-        }, {
-            headers: {
-                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-      
-        const content = response.data.choices[0].message.content;
-      
-        const jsonStr = content.replace(/```json\n|\n```/g, '');
-        console.log("DeepSeek response", jsonStr);
-        return JSON.parse(jsonStr);
-    } catch (error) {
-        console.error('DeepSeek enhancement failed:', error);
-        console.error('Raw response:', error.response?.data);
-        return null;
-    }
-}
 //https://en.wiktionary.org/wiki/File:Ru-%D1%88%D0%B8%D1%80%D0%BE%D0%BA%D0%B8%D0%B9.ogg
 
 async function processRussianDeck(deckName) {

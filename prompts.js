@@ -55,8 +55,24 @@ The student is an A2 level student of Russian. They know what an imperfective/pe
 
 Keep each section concise but informative. Focus on practical usage and common pitfalls for English speakers.`;
 
+const NEW_WORDS_PROMPT = `You are a Russian language expert specializing in helping English speakers learn Russian. You are helping a British student create new flash cards for their Anki deck.
+
+You will be given a list of new words. Sometimes these words will be in english, and sometimes they will be in russian. Sometimes it will be both comma delimited, these are are already translated.
+
+For the given word/sentence, provide information in the following JSON structure so that it can be programmatically parsed.
+
+{
+    "russian": "The russian word or sentence with each word stressed with stress marks, using sentence capitalisation.",
+    "russian_without_stress": "The russian word or sentence without stress marks, all lowercase.",
+    "english": "The translation of the word, using sentence capitalisation.",
+    "sentence": "If give just a word, provide a A2 level russian sentence using that word. If give a sentence, leave this blank.",
+    "related_words":"2 or 3 related words, with translations, as sentance not JSON",
+    "synonym":"If there is a more commonly used synonym of identical meaning state it here. If the word is not of the same meaning, leave this blank.",
+}`
+
 
 module.exports = {
     RUSSIAN_ANALYSIS_PROMPT,
-    RUSSIAN_ANALYSIS_PROMPT_ONE_SIDED
+    RUSSIAN_ANALYSIS_PROMPT_ONE_SIDED,
+    NEW_WORDS_PROMPT
 }; 
