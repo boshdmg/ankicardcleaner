@@ -48,10 +48,22 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
             
             // Add or update 'Russian without stress' field
             if (!noteInfo.fields['Russian without stress'] || 
-                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField).toLocaleUpperCase()) {
-                noteInfo.fields['Russian without stress'] = cleanRussianText(russianField).toLocaleUpperCase();
-                shouldUpdate = true;
-                console.log(`Updated ${russianField} to populated stressless field => ${cleanRussianText(russianField)}`);
+                noteInfo.fields['Russian without stress'].value !== cleanRussianText(russianField).toLowerCase()) {
+                
+                    try {
+                        await invokeAnkiConnect('updateNoteFields', {
+                            note: {
+                                id: noteId,
+                                fields: {
+                                    'Russian without stress': cleanRussianText(updatedField).toLowerCase()
+                                }
+                            }
+                        });
+                        console.log(`Set ${russianField} stressless field => ${cleanRussianText(russianField).toLowerCase()}`);
+                    } catch (error) {
+                        console.error(`Error updating note ${noteId}:`, error.message);
+                    }
+               
             }
             
             // ADD STRESS MARKS
@@ -64,7 +76,22 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                         
                         if (stressedWord && stressedWord !== cleanedWord) {
                             updatedField = stressedWord;
-                            shouldUpdate = true;
+                            try {
+                                await invokeAnkiConnect('updateNoteFields', {
+                                    note: {
+                                        id: noteId,
+                                        fields: {
+                                            Russian: updatedField,
+                                        }
+                                    }
+                                });
+                                console.log(`Updated ${updatedField}`);
+                            } catch (error) {
+                                console.error(`Error updating note ${noteId}:`, error.message);
+                            }
+
+
+
                             console.log(`Adding stress marks: "${cleanedWord}" → "${stressedWord}"`);
                         }
                     } catch (error) {
@@ -121,24 +148,7 @@ async function processRussianDeck(deckName, options = { addStressMarks: true, cl
                     }
                 }
             }
-
-            // UPDATE NOTE
-            if (shouldUpdate) {
-                try {
-                    await invokeAnkiConnect('updateNoteFields', {
-                        note: {
-                            id: noteId,
-                            fields: {
-                                Russian: updatedField,
-                                'Russian without stress': cleanRussianText(updatedField)
-                            }
-                        }
-                    });
-                    console.log(`Updated ${updatedField}`);
-                } catch (error) {
-                    console.error(`Error updating note ${noteId}:`, error.message);
-                }
-            }
+sj
         }
         
         console.log('Finished processing deck');

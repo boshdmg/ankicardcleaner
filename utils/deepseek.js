@@ -30,12 +30,14 @@ async function enhanceWithDeepSeek(russian, english, prompt) {
                     content: `Analyze this card. Front: ${russian}, Back: ${english}`
                 }
             ],
-            temperature: 1.3
+            temperature: 0.8,
+            max_tokens: 800
         }, {
             headers: {
                 'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
       
         const content = response.data.choices[0].message.content;
@@ -54,30 +56,38 @@ async function newWordsWithDeepSeek(word, prompt) {
         throw new Error('DEEPSEEK_API_KEY is not set in environment variables');
     }
 
-    const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
-     //  response_format: { type: "json_object" },
-        model: "deepseek-chat",
-        messages: [
-            {
-                role: "system",
-                content: prompt
+    try {
+        const response = await axios.post(DEEPSEEK_API_URL, {
+            model: "deepseek-chat",
+            response_format: { type: "json_object" },
+            messages: [
+                {
+                    role: "system",
+                    content: prompt
+                },
+                {
+                    role: "user",
+                    content: word
+                }
+            ],  
+            temperature: 0.4,
+            max_tokens: 800
+        }, {
+            headers: {
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+                'Content-Type': 'application/json'
             },
-            {
-                role: "user",
-                content: word
-            }
-        ],  
-        temperature: 1.3
-    }, {
-        headers: {
-            'Authorization': `Bearer sk-6d4860e431e043d0ab9a4cc3d0098b16`,
-            'Content-Type': 'application/json'
-        }   
-    });
-    const content = response.data.choices[0].message.content;
-    const jsonStr = content.replace(/```json\n|\n```/g, '');
-    
-    return JSON.parse(jsonStr);
+            timeout: 30000
+        });
+
+        const content = response.data.choices[0].message.content;
+        const jsonStr = content.replace(/```json\n|\n```/g, '');
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error('DeepSeek newWordsWithDeepSeek failed:', error);
+        console.error('Raw response:', error.response?.data);
+        return null;
+    }
 }
 
 module.exports = {

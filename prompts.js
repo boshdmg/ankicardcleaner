@@ -68,6 +68,7 @@ For the given word/sentence, provide information in the following JSON structure
     "sentence": "If give just a word, provide a A2 level russian sentence using that word. If give a sentence, leave this blank.",
     "related_words":"2 or 3 related words, with translations, as sentance not JSON",
     "synonym":"If there is a more commonly used synonym of identical meaning state it here. If the word is not of the same meaning, leave this blank.",
+    "is_sentence": "If the given russian is a sentence, please put true here. If the word is not a sentence, please put false.",
 }`
 
 

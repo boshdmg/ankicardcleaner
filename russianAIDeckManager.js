@@ -106,6 +106,6 @@ async function processRussianDeck(deckName) {
     }
 }
 
-//toto: not sure this option concept is needed
+
 const deckName = 'Russian';
 processRussianDeck(deckName);
